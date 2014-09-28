@@ -418,3 +418,33 @@ h1, h2, h3 {
     text-decoration: underlined; }
     .teaser a:hover, .teaser a:focus {
       color: orangered; }
+
+.section {
+  min-height: 100%;
+  width: 100%;
+  background: yellow; }
+  .section.blue {
+    background: blue; }
+  .section.red {
+    background: tomato; }
+  .section.green {
+    background: green; }
+
+.headerBar {
+  position: fixed;
+  height: 200px; }
+  .headerBar_container {
+    margin: 10px;
+    font-size: 80px; }
+  .headerBar_container, .default .headerBar_container {
+    color: white;
+    background: red; }
+  .blue .headerBar_container {
+    background: green;
+    color: blue; }
+  .red .headerBar_container {
+    background: yellow;
+    color: red; }
+  .green .headerBar_container {
+    background: black;
+    color: green; }
