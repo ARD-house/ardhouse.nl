@@ -369,6 +369,18 @@ td,
 th {
   padding: 0; }
 
+/* ===== UTILS ===== */
+/* _____ SYSTEM TOOLS _____ */
+/* _____ MIXINS _____ */
+/* _____ UNIVERSAL HELPERS _____ */
+/* ===== PROJECT ===== */
+/* _____ VARIABLES _____ */
+/* _____ FONTS _____ */
+@font-face {
+  font-family: 'kluwer-icons';
+  src: url("../fonts/kluwer-icons.eot?") format("eot"), url("../fonts/kluwer-icons.woff") format("woff"), url("../fonts/kluwer-icons.ttf") format("truetype");
+  font-weight: normal;
+  font-style: normal; }
 *,
 *:before,
 *:after {
@@ -419,32 +431,51 @@ h1, h2, h3 {
     .teaser a:hover, .teaser a:focus {
       color: orangered; }
 
-.section {
+.section, .section--aboutUs {
   min-height: 100%;
   width: 100%;
-  background: yellow; }
-  .section.blue {
-    background: blue; }
-  .section.red {
-    background: tomato; }
-  .section.green {
-    background: green; }
+  background-color: #eee;
+  background-color: rgba(0, 0, 0, 0.2);
+  background-size: cover;
+  background-position: center center;
+  border-bottom: 1px solid #fff; }
+  .section--aboutUs {
+    background-image: url(../image/aboutus_background.jpg); }
 
 .headerBar {
   position: fixed;
   height: 200px; }
   .headerBar_container {
-    margin: 10px;
-    font-size: 80px; }
-  .headerBar_container, .default .headerBar_container {
-    color: white;
-    background: red; }
-  .blue .headerBar_container {
-    background: green;
-    color: blue; }
-  .red .headerBar_container {
-    background: yellow;
-    color: red; }
-  .green .headerBar_container {
-    background: black;
-    color: green; }
+    margin: 10px; }
+  .headerBar_menu {
+    float: right;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    white-space: nowrap; }
+  .headerBar_menuItem {
+    margin: 0;
+    padding: 0;
+    float: left; }
+  .headerBar_menuLink--aboutUs, .headerBar_menuLink--concepting, .headerBar_menuLink--realisation, .headerBar_menuLink--optimizing, .headerBar_menuLink--contact {
+    display: inline-block;
+    line-height: 52px;
+    height: 52px;
+    padding: 0 20px;
+    font-size: 24px;
+    background: transparent;
+    -webkit-transition: background 200ms;
+            transition: background 200ms;
+    text-decoration: none;
+    color: #222;
+    color: rgba(0, 0, 0, 0.6);
+    background: #aaa;
+    background: rgba(255, 255, 255, 0.5);
+    background: #fff;
+    background: rgba(255, 255, 255, 0.9); }
+  .default .headerBar_menuLink--aboutUs, .concepting .headerBar_menuLink--concepting, .realisation .headerBar_menuLink--realisation, .optimizing .headerBar_menuLink--optimizing, .contact .headerBar_menuLink--contact, .headerBar_menuLink--aboutUs:hover, .headerBar_menuLink--concepting:hover, .headerBar_menuLink--realisation:hover, .headerBar_menuLink--optimizing:hover, .headerBar_menuLink--contact:hover {
+    background: #fff;
+    background: rgba(255, 255, 255, 0.9);
+    background: #000;
+    background: rgba(0, 0, 0, 0.9);
+    color: rgba(255, 255, 255, 0.9); }
