@@ -372,6 +372,13 @@ th {
 /* _____ SYSTEM TOOLS _____ */
 /* _____ MIXINS _____ */
 /* _____ UNIVERSAL HELPERS _____ */
+.logo_container {
+  *zoom: 1; }
+  .logo_container:before, .logo_container:after {
+    content: " ";
+    display: table; }
+  .logo_container:after {
+    clear: both; }
 /* ===== PROJECT ===== */
 /* _____ VARIABLES _____ */
 /* _____ FONTS _____ */
@@ -389,10 +396,20 @@ body, html {
   border: 0;
   padding: 0;
   margin: 0;
-  height: 100%; }
+  height: 100%;
+  font-family: 'Open Sans', sans-serif; }
 
 h1, h2, h3 {
-  font-family: Didot, "Didot LT STD", "Hoefler Text", Garamond, "Times New Roman", serif; }
+  font-family: 'Open Sans', sans-serif; }
+
+.logo_container {
+  margin: 0 auto;
+  max-width: 81.42857143em;
+  width: 81.42857143em;
+  display: block; }
+  @media (min-width: 10px) {
+    .logo_container {
+      width: 100%; } }
 
 .logo {
   color: #373938;
@@ -469,7 +486,9 @@ h1, h2, h3 {
     position: absolute;
     width: 100%;
     bottom: 1.5em;
-    z-index: 2; }
+    z-index: 2;
+    font-size: 1em;
+    margin: 0; }
   .logo_ard {
     font-family: 'Open Sans', sans-serif;
     font-size: 13.92857143em;
@@ -483,11 +502,30 @@ h1, h2, h3 {
     margin-left: 0.45454545em;
     display: inline-block; }
 
-.backdrop {
+.introduction {
   width: 100%;
   height: 100%;
-  min-height: 800px;
+  min-height: 700px;
   background: url(../image/chair.jpg);
   background-size: cover;
   background-position: center center;
-  background-repeat: no-repeat; }
+  background-repeat: no-repeat;
+  margin: 0;
+  float: left; }
+  .introduction_container {
+    width: 100%;
+    max-width: 57.14285714em;
+    margin: 0 auto; }
+  .introduction_article {
+    margin: 0 1.42857143em 1.42857143em 1.42857143em;
+    padding: 4.28571429em 4.28571429em;
+    background: #fff;
+    background: rgba(255, 255, 255, 0.75);
+    border-radius: 0 0 0.71428571em 0.71428571em;
+    -webkit-transition: padding 200ms;
+            transition: padding 200ms; }
+  .small + .introduction .introduction_article {
+    padding-top: 11.42857143em; }
+  .introduction_quote {
+    font-size: 2.14285714em;
+    display: block; }
