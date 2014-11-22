@@ -9191,7 +9191,7 @@ return jQuery;
 }));
 
 },{}],2:[function(require,module,exports){
-var $ = require("./../../../bower_components/jquery/dist/jquery.js");
+var $ = require("./..\\..\\..\\bower_components\\jquery\\dist\\jquery.js");
 
 require('./vendor/jquery.midnight');
 
@@ -9200,7 +9200,7 @@ $(function(){
     $('.headerBar').midnight();
 });
 
-},{"./../../../bower_components/jquery/dist/jquery.js":1,"./vendor/jquery.midnight":3}],3:[function(require,module,exports){
+},{"./..\\..\\..\\bower_components\\jquery\\dist\\jquery.js":1,"./vendor/jquery.midnight":3}],3:[function(require,module,exports){
 /*!
  * Midnight.js v1.0.0
  * jQuery plugin to switch between multiple fixed header designs on the fly, so it looks in line with the content below it.
@@ -9212,7 +9212,7 @@ $(function(){
  * http://aerolab.github.io/midnight.js/LICENSE.txt
  */
 
-var jQuery = require("./../../../../bower_components/jquery/dist/jquery.js");
+var jQuery = require("./..\\..\\..\\..\\bower_components\\jquery\\dist\\jquery.js");
 ((function ( $ ) {
 
     $.fn.midnight = function( customOptions ) {
@@ -9611,4 +9611,4 @@ var jQuery = require("./../../../../bower_components/jquery/dist/jquery.js");
 
 })(jQuery));
 
-},{"./../../../../bower_components/jquery/dist/jquery.js":1}]},{},[2])
+},{"./..\\..\\..\\..\\bower_components\\jquery\\dist\\jquery.js":1}]},{},[2])
