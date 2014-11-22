@@ -1,4 +1,625 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+
+/**
+ * FastDom
+ *
+ * Eliminates layout thrashing
+ * by batching DOM read/write
+ * interactions.
+ *
+ * @author Wilson Page <wilsonpage@me.com>
+ */
+
+;(function(fastdom){
+
+  'use strict';
+
+  // Normalize rAF
+  var raf = window.requestAnimationFrame
+    || window.webkitRequestAnimationFrame
+    || window.mozRequestAnimationFrame
+    || window.msRequestAnimationFrame
+    || function(cb) { return window.setTimeout(cb, 1000 / 60); };
+
+  // Normalize cAF
+  var caf = window.cancelAnimationFrame
+    || window.cancelRequestAnimationFrame
+    || window.mozCancelAnimationFrame
+    || window.mozCancelRequestAnimationFrame
+    || window.webkitCancelAnimationFrame
+    || window.webkitCancelRequestAnimationFrame
+    || window.msCancelAnimationFrame
+    || window.msCancelRequestAnimationFrame
+    || function(id) { window.clearTimeout(id); };
+
+  /**
+   * Creates a fresh
+   * FastDom instance.
+   *
+   * @constructor
+   */
+  function FastDom() {
+    this.frames = [];
+    this.lastId = 0;
+
+    // Placing the rAF method
+    // on the instance allows
+    // us to replace it with
+    // a stub for testing.
+    this.raf = raf;
+
+    this.batch = {
+      hash: {},
+      read: [],
+      write: [],
+      mode: null
+    };
+  }
+
+  /**
+   * Adds a job to the
+   * write batch and schedules
+   * a new frame if need be.
+   *
+   * @param  {Function} fn
+   * @api public
+   */
+  FastDom.prototype.read = function(fn, ctx) {
+    var job = this.add('read', fn, ctx);
+    var id = job.id;
+
+    // Add this job to the read queue
+    this.batch.read.push(job.id);
+
+    // We should *not* schedule a new frame if:
+    // 1. We're 'reading'
+    // 2. A frame is already scheduled
+    var doesntNeedFrame = this.batch.mode === 'reading'
+      || this.batch.scheduled;
+
+    // If a frame isn't needed, return
+    if (doesntNeedFrame) return id;
+
+    // Schedule a new
+    // frame, then return
+    this.scheduleBatch();
+    return id;
+  };
+
+  /**
+   * Adds a job to the
+   * write batch and schedules
+   * a new frame if need be.
+   *
+   * @param  {Function} fn
+   * @api public
+   */
+  FastDom.prototype.write = function(fn, ctx) {
+    var job = this.add('write', fn, ctx);
+    var mode = this.batch.mode;
+    var id = job.id;
+
+    // Push the job id into the queue
+    this.batch.write.push(job.id);
+
+    // We should *not* schedule a new frame if:
+    // 1. We are 'writing'
+    // 2. We are 'reading'
+    // 3. A frame is already scheduled.
+    var doesntNeedFrame = mode === 'writing'
+      || mode === 'reading'
+      || this.batch.scheduled;
+
+    // If a frame isn't needed, return
+    if (doesntNeedFrame) return id;
+
+    // Schedule a new
+    // frame, then return
+    this.scheduleBatch();
+    return id;
+  };
+
+  /**
+   * Defers the given job
+   * by the number of frames
+   * specified.
+   *
+   * If no frames are given
+   * then the job is run in
+   * the next free frame.
+   *
+   * @param  {Number}   frame
+   * @param  {Function} fn
+   * @api public
+   */
+  FastDom.prototype.defer = function(frame, fn, ctx) {
+
+    // Accepts two arguments
+    if (typeof frame === 'function') {
+      ctx = fn;
+      fn = frame;
+      frame = 1;
+    }
+
+    var self = this;
+    var index = frame - 1;
+
+    return this.schedule(index, function() {
+      self.run({
+        fn: fn,
+        ctx: ctx
+      });
+    });
+  };
+
+  /**
+   * Clears a scheduled 'read',
+   * 'write' or 'defer' job.
+   *
+   * @param  {Number} id
+   * @api public
+   */
+  FastDom.prototype.clear = function(id) {
+
+    // Defer jobs are cleared differently
+    if (typeof id === 'function') {
+      return this.clearFrame(id);
+    }
+
+    var job = this.batch.hash[id];
+    if (!job) return;
+
+    var list = this.batch[job.type];
+    var index = list.indexOf(id);
+
+    // Clear references
+    delete this.batch.hash[id];
+    if (~index) list.splice(index, 1);
+  };
+
+  /**
+   * Clears a scheduled frame.
+   *
+   * @param  {Function} frame
+   * @api private
+   */
+  FastDom.prototype.clearFrame = function(frame) {
+    var index = this.frames.indexOf(frame);
+    if (~index) this.frames.splice(index, 1);
+  };
+
+  /**
+   * Schedules a new read/write
+   * batch if one isn't pending.
+   *
+   * @api private
+   */
+  FastDom.prototype.scheduleBatch = function() {
+    var self = this;
+
+    // Schedule batch for next frame
+    this.schedule(0, function() {
+      self.batch.scheduled = false;
+      self.runBatch();
+    });
+
+    // Set flag to indicate
+    // a frame has been scheduled
+    this.batch.scheduled = true;
+  };
+
+  /**
+   * Generates a unique
+   * id for a job.
+   *
+   * @return {Number}
+   * @api private
+   */
+  FastDom.prototype.uniqueId = function() {
+    return ++this.lastId;
+  };
+
+  /**
+   * Calls each job in
+   * the list passed.
+   *
+   * If a context has been
+   * stored on the function
+   * then it is used, else the
+   * current `this` is used.
+   *
+   * @param  {Array} list
+   * @api private
+   */
+  FastDom.prototype.flush = function(list) {
+    var id;
+
+    while (id = list.shift()) {
+      this.run(this.batch.hash[id]);
+    }
+  };
+
+  /**
+   * Runs any 'read' jobs followed
+   * by any 'write' jobs.
+   *
+   * We run this inside a try catch
+   * so that if any jobs error, we
+   * are able to recover and continue
+   * to flush the batch until it's empty.
+   *
+   * @api private
+   */
+  FastDom.prototype.runBatch = function() {
+    try {
+
+      // Set the mode to 'reading',
+      // then empty all read jobs
+      this.batch.mode = 'reading';
+      this.flush(this.batch.read);
+
+      // Set the mode to 'writing'
+      // then empty all write jobs
+      this.batch.mode = 'writing';
+      this.flush(this.batch.write);
+
+      this.batch.mode = null;
+
+    } catch (e) {
+      this.runBatch();
+      throw e;
+    }
+  };
+
+  /**
+   * Adds a new job to
+   * the given batch.
+   *
+   * @param {Array}   list
+   * @param {Function} fn
+   * @param {Object}   ctx
+   * @returns {Number} id
+   * @api private
+   */
+  FastDom.prototype.add = function(type, fn, ctx) {
+    var id = this.uniqueId();
+    return this.batch.hash[id] = {
+      id: id,
+      fn: fn,
+      ctx: ctx,
+      type: type
+    };
+  };
+
+  /**
+   * Runs a given job.
+   *
+   * Applications using FastDom
+   * have the options of setting
+   * `fastdom.onError`.
+   *
+   * This will catch any
+   * errors that may throw
+   * inside callbacks, which
+   * is useful as often DOM
+   * nodes have been removed
+   * since a job was scheduled.
+   *
+   * Example:
+   *
+   *   fastdom.onError = function(e) {
+   *     // Runs when jobs error
+   *   };
+   *
+   * @param  {Object} job
+   * @api private
+   */
+  FastDom.prototype.run = function(job){
+    var ctx = job.ctx || this;
+    var fn = job.fn;
+
+    // Clear reference to the job
+    delete this.batch.hash[job.id];
+
+    // If no `onError` handler
+    // has been registered, just
+    // run the job normally.
+    if (!this.onError) {
+      return fn.call(ctx);
+    }
+
+    // If an `onError` handler
+    // has been registered, catch
+    // errors that throw inside
+    // callbacks, and run the
+    // handler instead.
+    try { fn.call(ctx); } catch (e) {
+      this.onError(e);
+    }
+  };
+
+  /**
+   * Starts of a rAF loop
+   * to empty the frame queue.
+   *
+   * @api private
+   */
+  FastDom.prototype.loop = function() {
+    var self = this;
+    var raf = this.raf;
+
+    // Don't start more than one loop
+    if (this.looping) return;
+
+    raf(function frame() {
+      var fn = self.frames.shift();
+
+      // If no more frames,
+      // stop looping
+      if (!self.frames.length) {
+        self.looping = false;
+
+      // Otherwise, schedule the
+      // next frame
+      } else {
+        raf(frame);
+      }
+
+      // Run the frame.  Note that
+      // this may throw an error
+      // in user code, but all
+      // fastdom tasks are dealt
+      // with already so the code
+      // will continue to iterate
+      if (fn) fn();
+    });
+
+    this.looping = true;
+  };
+
+  /**
+   * Adds a function to
+   * a specified index
+   * of the frame queue.
+   *
+   * @param  {Number}   index
+   * @param  {Function} fn
+   * @return {Function}
+   */
+  FastDom.prototype.schedule = function(index, fn) {
+
+    // Make sure this slot
+    // hasn't already been
+    // taken. If it has, try
+    // re-scheduling for the next slot
+    if (this.frames[index]) {
+      return this.schedule(index + 1, fn);
+    }
+
+    // Start the rAF
+    // loop to empty
+    // the frame queue
+    this.loop();
+
+    // Insert this function into
+    // the frames queue and return
+    return this.frames[index] = fn;
+  };
+
+  // We only ever want there to be
+  // one instance of FastDom in an app
+  fastdom = fastdom || new FastDom();
+
+  /**
+   * Expose 'fastdom'
+   */
+
+  if (typeof module !== 'undefined' && module.exports) {
+    module.exports = fastdom;
+  } else if (typeof define === 'function' && define.amd) {
+    define(function(){ return fastdom; });
+  } else {
+    window['fastdom'] = fastdom;
+  }
+
+})(window.fastdom);
+
+},{}],2:[function(require,module,exports){
+var StickyElement = require('./StickyElement');
+
+var offset = function( obj ) {
+    var curleft = curtop = 0;
+    if (obj.offsetParent) {
+        do {
+            curleft += obj.offsetLeft;
+            curtop += obj.offsetTop;
+        } while (obj = obj.offsetParent);
+    }
+    return {left:curleft, top: curtop};
+};
+
+var Contact = function(element, configuration){
+    StickyElement.call(this, element, configuration);
+};
+
+Contact.prototype = Object.create(StickyElement.prototype);
+Contact.prototype.constructor = Contact;
+
+Object.assign(Contact.prototype, {
+    _detectElements: function(){
+        this._containerElement = this._element.querySelector('.contact_container');
+        StickyElement.prototype._detectElements.call(this);
+    },
+
+    _getLogoElement: function(){
+        if ( !this._logoElement ) {
+            this._logoElement = document.querySelector('.logo');
+        }
+        return this._logoElement;
+    },
+
+    _getLogoHeight: function(){
+        return this._getLogoElement().clientHeight;
+    },
+
+    _getElementOffset: function(){
+        return offset(this._element).top;
+    },
+
+    _onViewportChange: function(){
+        this._configuration.startOffsetTop = this._getElementOffset() - this._getLogoHeight();
+        StickyElement.prototype._onViewportChange.call(this);
+    },
+
+    _enableSticky: function(){
+        this._containerElement.style.top = this._getLogoHeight() + 'px';
+        StickyElement.prototype._enableSticky.call(this);
+    }
+
+});
+
+module.exports = Contact;
+
+},{"./StickyElement":3}],3:[function(require,module,exports){
+/**
+ *
+ * @type {fastdom}
+ */
+var fastdom = require("./..\\..\\..\\..\\bower_components\\fastdom\\index.js");
+
+/**
+ *
+ * @type {ComponentAbstract}
+ */
+var ComponentAbstract = require('../util/ComponentAbstract');
+
+/**
+ * @type {{activeClass: string, startOffsetTop: number}}
+ */
+var defaultConfiguration = {
+    activeClass: 'sticky',
+    startOffsetTop: 124
+};
+
+/**
+ * @param {HTMLElement} element
+ * @param {defaultConfiguration} [configuration]
+ * @class
+ */
+var StickyElement = function (element, configuration) {
+    configuration = Object.assign(
+        {},
+        defaultConfiguration,
+        configuration || {}
+    );
+
+    ComponentAbstract.call(this, element, configuration);
+    fastdom.write(this._onViewportChange.bind(this));
+};
+
+StickyElement.prototype = Object.create(ComponentAbstract.prototype);
+StickyElement.prototype.constructor = StickyElement;
+
+Object.assign(StickyElement.prototype, {
+    /**
+     *
+     * @protected
+     */
+    _bindEventHandlers: function(){
+        window.addEventListener('scroll', this._onViewportChange.bind(this));
+        window.addEventListener('load', this._onViewportChange.bind(this));
+        window.addEventListener('orientationchange', this._onViewportChange.bind(this));
+        window.addEventListener('resize', this._onViewportChange.bind(this));
+    },
+
+    /**
+     *
+     * @protected
+     */
+    _onViewportChange: function(){
+        this.challengeSticky();
+    },
+
+    /**
+     *
+     * @returns {boolean}
+     * @protected
+     */
+    _shouldBeSticky: function(){
+        var scrollPositionY = window.pageYOffset || document.documentElement.scrollTop;
+        return scrollPositionY > this._configuration.startOffsetTop;
+    },
+
+    /**
+     * Test if element should be sticky on next read frame
+     */
+    challengeSticky: function(){
+        // Since challenge is tested on next read frame it is
+        // not necessary to execute this again if the challenge has
+        // already been queued.
+        if ( this._stickyChallenged !== true ){
+            this._stickyChallenged = true;
+
+            fastdom.read(function(){
+                if ( this._shouldBeSticky() ){
+                    this.enableSticky();
+                } else {
+                    this.disableSticky();
+                }
+
+                this._stickyChallenged = false;
+            }.bind(this));
+        }
+    },
+
+    /**
+     * Explicitly enable stickyness. This is automatically called
+     * when needed on resize, load, rotate, scroll
+     */
+    enableSticky: function(){
+        // only execute if current state is not sticky
+        if ( this._isSticky !== true ){
+            this._isSticky = true;
+
+            // queue actual stickyness enabling on next write frame
+            fastdom.write(this._enableSticky.bind(this));
+        }
+    },
+
+    /**
+     *
+     * @protected
+     */
+    _enableSticky: function () {
+        this._element.classList.add(this._configuration.activeClass);
+    },
+
+    /**
+     * Explicitly disable stickyness. This is automatically called
+     * when needed on resize, load, rotate, scroll
+     */
+    disableSticky: function(){
+        // only execute if current state is sticky
+        if ( this._isSticky !== false ){
+            this._isSticky = false;
+
+            // queue actual stickyness disabling on next write frame
+            fastdom.write(this._disableSticky.bind(this));
+        }
+    },
+
+    /**
+     *
+     * @protected
+     */
+    _disableSticky: function () {
+        this._element.classList.remove(this._configuration.activeClass);
+    }
+});
+
+module.exports = StickyElement;
+
+},{"../util/ComponentAbstract":17,"./..\\..\\..\\..\\bower_components\\fastdom\\index.js":1}],4:[function(require,module,exports){
 /**
  * This document bootstraps the use of interactive components
  * on the entire website. It loads the necessary generic
@@ -31,22 +652,31 @@ require('./polyfill/Window.getComputedStyle');
 // detect elements on the page and apply components onto them in needed
 // this can only be done when the dom is ready for manipulation
 document.addEventListener('DOMContentLoaded', function(){
-	document.addEventListener('scroll', function(){
-		var scrollPositionY = window.pageYOffset || document.documentElement.scrollTop;
-		var logoElement = document.querySelector('.logo');
-		var logoPlaceholderElement = document.querySelector('.logo_placeholder');
+    var logoElement = document.querySelector('.logo');
+    var logoPlaceholderElement = document.querySelector('.logo_placeholder');
 
-		if ( scrollPositionY > 70 ){
-			logoElement.classList.add('small');
-			logoPlaceholderElement.classList.add('small');
-		} else {
-			logoElement.classList.remove('small');
-			logoPlaceholderElement.classList.remove('small');
-		}
-	});
+    var positionLogo = function(){
+        var scrollPositionY = window.pageYOffset || document.documentElement.scrollTop;
+
+        if ( scrollPositionY > 70 ){
+            logoElement.classList.add('small');
+            logoPlaceholderElement.classList.add('small');
+        } else {
+            logoElement.classList.remove('small');
+            logoPlaceholderElement.classList.remove('small');
+        }
+    };
+
+	document.addEventListener('scroll', positionLogo);
+    positionLogo();
+
+
+    var ContactElement = document.querySelector('.contact');
+    var Contact = require('./component/Contact');
+    new Contact(ContactElement);
 });
 
-},{"./polyfill/Array.forEach":2,"./polyfill/Array.indexOf":3,"./polyfill/Array.map":4,"./polyfill/Element.classList":5,"./polyfill/EventTarget.addEventListener":6,"./polyfill/Function.bind":7,"./polyfill/NodeList.forEach":8,"./polyfill/NodeList.toArray":9,"./polyfill/Object.assign":10,"./polyfill/Object.create":11,"./polyfill/Window.getComputedStyle":12,"./polyfill/input.placeholder":13}],2:[function(require,module,exports){
+},{"./component/Contact":2,"./polyfill/Array.forEach":5,"./polyfill/Array.indexOf":6,"./polyfill/Array.map":7,"./polyfill/Element.classList":8,"./polyfill/EventTarget.addEventListener":9,"./polyfill/Function.bind":10,"./polyfill/NodeList.forEach":11,"./polyfill/NodeList.toArray":12,"./polyfill/Object.assign":13,"./polyfill/Object.create":14,"./polyfill/Window.getComputedStyle":15,"./polyfill/input.placeholder":16}],5:[function(require,module,exports){
 // Production steps of ECMA-262, Edition 5, 15.4.4.18
 // Reference: http://es5.github.io/#x15.4.4.18
 if (!Array.prototype.forEach) {
@@ -106,7 +736,7 @@ if (!Array.prototype.forEach) {
     };
 }
 
-},{}],3:[function(require,module,exports){
+},{}],6:[function(require,module,exports){
 // Production steps of ECMA-262, Edition 5, 15.4.4.14
 // Reference: http://es5.github.io/#x15.4.4.14
 if (!Array.prototype.indexOf) {
@@ -174,7 +804,7 @@ if (!Array.prototype.indexOf) {
 	};
 }
 
-},{}],4:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 // Production steps of ECMA-262, Edition 5, 15.4.4.19
 // Reference: http://es5.github.io/#x15.4.4.19
 if (!Array.prototype.map) {
@@ -265,7 +895,7 @@ if (!Array.prototype.map) {
     };
 }
 
-},{}],5:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
 /*
  * classList.js: Cross-browser full element.classList implementation.
  * 2014-07-23
@@ -490,7 +1120,7 @@ if ("document" in self) {
 
 }
 
-},{}],6:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 // based on https://developer.mozilla.org/en-US/docs/Web/API/EventTarget.addEventListener
 if (!Event.prototype.preventDefault) {
     Event.prototype.preventDefault=function() {
@@ -562,7 +1192,7 @@ if (!Element.prototype.addEventListener) {
     }
 }
 
-},{}],7:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/bind
 if (!Function.prototype.bind) {
     Function.prototype.bind = function (oThis) {
@@ -589,7 +1219,7 @@ if (!Function.prototype.bind) {
     };
 }
 
-},{}],8:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 var nodeListForEach = function(){
     var items = this.toArray();
     return items.forEach.apply(items, arguments);
@@ -603,7 +1233,7 @@ if ( window.StaticNodeList && StaticNodeList.prototype && !StaticNodeList.protot
     StaticNodeList.prototype.forEach = nodeListForEach;
 }
 
-},{}],9:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
 var arraySlice = Array.prototype.slice;
 
 var nodeListToArray = function(){
@@ -628,7 +1258,7 @@ if ( window.StaticNodeList && StaticNodeList.prototype && !StaticNodeList.protot
     StaticNodeList.prototype.toArray = nodeListToArray;
 }
 
-},{}],10:[function(require,module,exports){
+},{}],13:[function(require,module,exports){
 if (!Object.assign) {
     Object.assign = function(target, sources) {
         if (target == null) {
@@ -661,7 +1291,7 @@ if (!Object.assign) {
     };
 }
 
-},{}],11:[function(require,module,exports){
+},{}],14:[function(require,module,exports){
 // @source https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/create
 if (typeof Object.create != 'function') {
     Object.create = (function() {
@@ -681,7 +1311,7 @@ if (typeof Object.create != 'function') {
     })();
 }
 
-},{}],12:[function(require,module,exports){
+},{}],15:[function(require,module,exports){
 if (!window.getComputedStyle) {
     window.getComputedStyle = function(el, pseudo) {
         this.el = el;
@@ -699,6 +1329,109 @@ if (!window.getComputedStyle) {
     }
 }
 
-},{}],13:[function(require,module,exports){
+},{}],16:[function(require,module,exports){
 
-},{}]},{},[1])
+},{}],17:[function(require,module,exports){
+/**
+ * @type {EventEmitter}
+ */
+var EventEmitter = require('./EventEmitter');
+
+/**
+ *
+ * @type {fastdom}
+ */
+var fastdom = require("./..\\..\\..\\..\\bower_components\\fastdom\\index.js");
+
+/**
+ *
+ * @param element {HTMlElement}
+ * @param configuration {Object}
+ * @constructor
+ */
+var ComponentAbstract = function(element, configuration) {
+    this._element = element;
+    this._configuration = configuration || {};
+
+    fastdom.read(this._detectElements.bind(this));
+    fastdom.write(this._bindEventHandlers.bind(this));
+};
+
+// extend EventEmitter
+ComponentAbstract.prototype = Object.create(EventEmitter.prototype);
+ComponentAbstract.prototype.constructor = ComponentAbstract;
+
+Object.assign(ComponentAbstract.prototype, {
+    /**
+     * Create internal references to Elements during read cycle
+     * @protected
+     */
+    _detectElements: function () {},
+
+    /**
+     * Bind event handlers to components during write cycle
+     * @protected
+     */
+    _bindEventHandlers: function () {}
+});
+
+/**
+ * @type {ComponentAbstract}
+ */
+module.exports = ComponentAbstract;
+
+},{"./..\\..\\..\\..\\bower_components\\fastdom\\index.js":1,"./EventEmitter":18}],18:[function(require,module,exports){
+/**
+ * The purpose of this document is providing a reusable event emitter
+ * for prototype object. This allows to add, remove and trigger events.
+ *
+ * @class
+ */
+var EventEmitter = function () {};
+
+EventEmitter.prototype = {
+    /**
+     * Add event listener
+     *
+     * @param event
+     * @param callbackFn
+     */
+    addEventListener: function (event, callbackFn) {
+        this._eventListener = this._eventListener || {};
+        this._eventListener[event] = this._eventListener[event] || [];
+        this._eventListener[event].push(callbackFn);
+    },
+
+    /**
+     * Remove event listener
+     *
+     * @param event
+     * @param callbackFn
+     */
+    removeEventListener: function (event, callbackFn) {
+        this._eventListener = this._eventListener || {};
+
+        if (event in this._eventListener !== false) {
+            this._eventListener[event].splice(this._eventListener[event].indexOf(callbackFn), 1);
+        }
+    },
+
+    /**
+     * Trigger event on object.
+     *
+     * @param event
+     */
+    triggerEvent: function(event /* , args... */){
+        this._eventListener = this._eventListener || {};
+
+        if (event in this._eventListener !== false  ) {
+            for(var i = 0; i < this._eventListener[event].length; i++){
+                this._eventListener[event][i].apply(this, Array.prototype.slice.call(arguments, 1));
+            }
+        }
+    }
+};
+
+module.exports = EventEmitter;
+
+},{}]},{},[4])

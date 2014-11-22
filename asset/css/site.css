@@ -419,16 +419,22 @@ h1, h2, h3 {
   font-size: 1em;
   position: fixed;
   top: 0;
-  width: 100%; }
+  width: 100%;
+  z-index: 100; }
   .logo:before {
     content: '';
     display: block;
     background: #F05B22;
-    height: 1.78571429em;
+    background: #f05b22;
+    background: -webkit-gradient(left top, left bottom, color-stop(0%, #f05b22), color-stop(26%, #f05b22), color-stop(100%, rgba(240, 92, 34, 0.67)));
+    background: -webkit-linear-gradient(top, #f05b22 0%, #f05b22 26%, rgba(240, 92, 34, 0.67) 100%);
+    background: linear-gradient(to bottom, #f05b22 0%, #f05b22 26%, rgba(240, 92, 34, 0.67) 100%);
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#f05b22', endColorstr='#f05c22', GradientType=0 );
     position: absolute;
     left: -2.5em;
     top: 100%;
-    width: 50%; }
+    width: 50%;
+    height: 1.78571429em; }
   .logo:after {
     content: '';
     display: block;
@@ -542,21 +548,29 @@ h1, h2, h3 {
   background-repeat: no-repeat;
   margin: 0;
   float: left;
-  display: table; }
+  position: relative; }
   .contact_container {
-    width: 100%;
-    max-width: 57.14285714em;
-    margin: 0 auto;
-    display: table-cell;
-    vertical-align: center;
-    height: 100%; }
+    background: #F05B22;
+    float: left;
+    width: 100%; }
+  .contact.sticky .contact_container {
+    position: fixed; }
   .contact_article {
-    display: inline-block;
-    margin: 0 1.42857143em 1.42857143em 1.42857143em;
-    padding: 4.28571429em 4.28571429em;
-    background: #fff;
-    background: rgba(255, 255, 255, 0.75);
-    border-radius: 0.71428571em;
-    -webkit-transition: padding 200ms;
-            transition: padding 200ms;
-    text-align: center; }
+    text-align: center;
+    padding: 2.14285714em 0; }
+  .contact_title {
+    font-size: 3.57142857em;
+    font-weight: 400;
+    font-family: 'Droid Serif', serif;
+    margin-top: 0;
+    color: #fff; }
+  .contact_list {
+    list-style: none;
+    margin: 0;
+    padding: 0; }
+  .contact_link, .contact_link--mail {
+    font-size: 1.42857143em;
+    color: #333;
+    text-decoration: none; }
+    .contact_link:hover, .contact_link--mail:hover {
+      text-decoration: underline; }
