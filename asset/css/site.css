@@ -394,86 +394,16 @@ body, html {
 h1, h2, h3 {
   font-family: Didot, "Didot LT STD", "Hoefler Text", Garamond, "Times New Roman", serif; }
 
-.teaser {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  background-image: url(../image/contact_teaser.jpg);
-  background-size: cover; }
-  .teaser_container {
-    background-color: #fefefe;
-    background-color: rgba(255, 255, 255, 0.8);
-    background-color: #333;
-    background-color: rgba(0, 0, 0, 0.6);
-    color: white;
-    color: rgba(255, 255, 255, 0.9);
-    margin: auto;
-    position: absolute;
-    top: 0;
-    left: 0;
-    bottom: 0;
-    right: 0;
-    width: 350px;
-    max-width: 100%;
-    height: 400px;
-    max-height: 100%;
-    padding: 40px 20px; }
-  .teaser h1 {
-    font-weight: bold; }
-  .teaser h2 {
-    color: #eee;
-    color: rgba(255, 255, 255, 0.6); }
-  .teaser a {
-    color: orange;
-    text-decoration: underlined; }
-    .teaser a:hover, .teaser a:focus {
-      color: orangered; }
-
-.section, .section--aboutUs {
-  min-height: 100%;
-  width: 100%;
-  background-color: #eee;
-  background-color: rgba(0, 0, 0, 0.2);
-  background-size: cover;
-  background-position: center center;
-  border-bottom: 1px solid #fff; }
-  .section--aboutUs {
-    background-image: url(../image/aboutus_background.jpg); }
-
-.headerBar {
-  position: fixed;
-  height: 200px; }
-  .headerBar_container {
-    margin: 10px; }
-  .headerBar_menu {
-    float: right;
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    white-space: nowrap; }
-  .headerBar_menuItem {
-    margin: 0;
-    padding: 0;
-    float: left; }
-  .headerBar_menuLink--aboutUs, .headerBar_menuLink--concepting, .headerBar_menuLink--realisation, .headerBar_menuLink--optimizing, .headerBar_menuLink--contact {
-    display: inline-block;
-    line-height: 52px;
-    height: 52px;
-    padding: 0 20px;
-    font-size: 24px;
-    background: transparent;
-    -webkit-transition: background 200ms;
-            transition: background 200ms;
-    text-decoration: none;
-    color: #222;
-    color: rgba(0, 0, 0, 0.6);
-    background: #aaa;
-    background: rgba(255, 255, 255, 0.5);
-    background: #fff;
-    background: rgba(255, 255, 255, 0.9); }
-  .default .headerBar_menuLink--aboutUs, .concepting .headerBar_menuLink--concepting, .realisation .headerBar_menuLink--realisation, .optimizing .headerBar_menuLink--optimizing, .contact .headerBar_menuLink--contact, .headerBar_menuLink--aboutUs:hover, .headerBar_menuLink--concepting:hover, .headerBar_menuLink--realisation:hover, .headerBar_menuLink--optimizing:hover, .headerBar_menuLink--contact:hover {
-    background: #fff;
-    background: rgba(255, 255, 255, 0.9);
-    background: #000;
-    background: rgba(0, 0, 0, 0.9);
-    color: rgba(255, 255, 255, 0.9); }
+.logo {
+  color: #1178B4; }
+  .logo_ard {
+    font-family: 'Open Sans', sans-serif;
+    font-size: 13.92857143em;
+    letter-spacing: -0.14358974em;
+    font-weight: 600;
+    display: inline-block; }
+  .logo_house {
+    font-family: 'Droid Serif', serif;
+    font-size: 7.85714286em;
+    margin-left: 0.45454545em;
+    display: inline-block; }
