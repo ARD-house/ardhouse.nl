@@ -530,13 +530,28 @@ h1, h2, h3 {
     border-radius: 0 0 0.71428571em 0.71428571em;
     -webkit-transition: padding 200ms;
             transition: padding 200ms;
-    text-align: center; }
+    text-align: center;
+    position: relative; }
   .small + .introduction .introduction_article {
     padding-top: 11.42857143em; }
   .introduction_quote {
     font-size: 2.14285714em;
     display: block;
     margin-bottom: 2.4em; }
+  .introduction_contact {
+    position: absolute;
+    top: 100%;
+    margin-top: -1.42857143em;
+    left: 2.85714286em;
+    right: 2.85714286em;
+    background: #373938;
+    color: #ffffff;
+    height: 2.85714286em;
+    line-height: 2.85714286em;
+    border-radius: 0.71428571em;
+    text-decoration: none; }
+    .introduction_contact_hover {
+      text-decoration: underline; }
 
 .contact {
   width: 100%;
