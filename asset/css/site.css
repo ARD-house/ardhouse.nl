@@ -399,20 +399,40 @@ h1, h2, h3 {
   background-color: #F1AD0F;
   text-align: center;
   position: relative; }
+  .logo:after {
+    content: '';
+    display: block;
+    background: #ffffff;
+    height: 1.78571429em;
+    position: absolute;
+    left: -4.28571429em;
+    bottom: 0;
+    width: 50%; }
   .logo:before {
     content: '';
-    background: #ffffff;
-    height: 2.14285714em;
+    display: block;
+    background: url(../image/pen_white.png);
+    background-position: left bottom;
+    background-repeat: no-repeat;
+    width: 50%;
+    height: 100%;
+    top: 0;
+    right: 4.28571429em;
+    position: absolute; }
+  .logo_container {
+    position: relative;
+    height: 31.42857143em; }
+  .logo_text {
     position: absolute;
-    left: 0;
-    bottom: 0;
-    right: 50%; }
+    width: 100%;
+    bottom: 3.28571429em; }
   .logo_ard {
     font-family: 'Open Sans', sans-serif;
     font-size: 13.92857143em;
-    letter-spacing: -0.12820513em;
+    letter-spacing: -0.14358974em;
     font-weight: 600;
-    display: inline-block; }
+    display: inline-block;
+    margin-left: -0.1025641em; }
   .logo_house {
     font-family: 'Droid Serif', serif;
     font-size: 7.85714286em;
