@@ -395,7 +395,18 @@ h1, h2, h3 {
   font-family: Didot, "Didot LT STD", "Hoefler Text", Garamond, "Times New Roman", serif; }
 
 .logo {
-  color: #1178B4; }
+  color: #1178B4;
+  background-color: #F1AD0F;
+  text-align: center;
+  position: relative; }
+  .logo:before {
+    content: '';
+    background: #ffffff;
+    height: 2.14285714em;
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    right: 50%; }
   .logo_ard {
     font-family: 'Open Sans', sans-serif;
     font-size: 13.92857143em;
