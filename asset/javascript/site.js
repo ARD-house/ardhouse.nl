@@ -36,7 +36,7 @@ document.addEventListener('DOMContentLoaded', function(){
 		var logoElement = document.querySelector('.logo');
 		var logoPlaceholderElement = document.querySelector('.logo_placeholder');
 
-		if ( scrollPositionY > 80 ){
+		if ( scrollPositionY > 70 ){
 			logoElement.classList.add('small');
 			logoPlaceholderElement.classList.add('small');
 		} else {
