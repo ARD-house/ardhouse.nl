@@ -395,17 +395,21 @@ h1, h2, h3 {
   font-family: Didot, "Didot LT STD", "Hoefler Text", Garamond, "Times New Roman", serif; }
 
 .logo {
-  color: #1178B4;
-  background-color: #F1AD0F;
+  color: #373938;
+  background-color: #F05B22;
   text-align: center;
-  position: relative; }
+  position: relative;
+  font-size: 1em;
+  -webkit-transition: all 200ms;
+          transition: all 200ms;
+  font-size: 1em; }
   .logo:before {
     content: '';
     display: block;
-    background: #F1AD0F;
+    background: #F05B22;
     height: 1.78571429em;
     position: absolute;
-    left: -4.28571429em;
+    left: -2.5em;
     top: 100%;
     width: 50%; }
   .logo:after {
@@ -414,14 +418,47 @@ h1, h2, h3 {
     background: url(../image/pen_white.png);
     background-position: left bottom;
     background-repeat: no-repeat;
+    background-size: contain;
     width: 50%;
-    height: 100%;
-    bottom: -1.78571429em;
+    top: -2.14285714em;
+    bottom: -1.92857143em;
     right: 4.28571429em;
     position: absolute; }
+  .logo.small {
+    font-size: .5em; }
+  @media screen and (max-width: 980px) {
+    .logo {
+      font-size: .9em; }
+      .logo.small {
+        font-size: .45em; } }
+  @media screen and (max-width: 810px) {
+    .logo {
+      font-size: .8em; }
+      .logo.small {
+        font-size: .4em; } }
+  @media screen and (max-width: 740px) {
+    .logo {
+      font-size: .7em; }
+      .logo.small {
+        font-size: .35em; } }
+  @media screen and (max-width: 640px) {
+    .logo {
+      font-size: .6em; }
+      .logo.small {
+        font-size: .3em; } }
+  @media screen and (max-width: 560px) {
+    .logo {
+      font-size: .5em; }
+      .logo.small {
+        font-size: .2em; } }
+  @media screen and (max-width: 420px) {
+    .logo {
+      font-size: .3em; }
+      .logo.small {
+        font-size: .1em; } }
   .logo_container {
     position: relative;
-    height: 29.64285714em; }
+    height: 23.92857143em; }
   .logo_text {
     position: absolute;
     width: 100%;
