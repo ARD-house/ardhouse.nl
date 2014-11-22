@@ -532,12 +532,23 @@ h1, h2, h3 {
             transition: padding 200ms;
     text-align: center;
     position: relative; }
+    @media (max-width: 786px) {
+      .introduction_article {
+        padding-left: 1.42857143em;
+        padding-right: 1.42857143em; } }
   .small + .introduction .introduction_article {
     padding-top: 11.42857143em; }
+    @media screen and (max-width: 420px) {
+      .small + .introduction .introduction_article {
+        padding-top: 4.28571429em; } }
   .introduction_quote {
-    font-size: 2.14285714em;
+    font-size: 1.78571429em;
     display: block;
     margin-bottom: 2.4em; }
+    @media (max-width: 786px) {
+      .introduction_quote {
+        font-size: 1.14285714em;
+        margin-bottom: 1.875em; } }
   .introduction_contact {
     position: absolute;
     top: 100%;
@@ -546,10 +557,11 @@ h1, h2, h3 {
     right: 2.85714286em;
     background: #373938;
     color: #ffffff;
-    height: 2.85714286em;
-    line-height: 2.85714286em;
+    min-height: 2.85714286em;
+    line-height: 1.42857143em;
     border-radius: 0.71428571em;
-    text-decoration: none; }
+    text-decoration: none;
+    padding: 0.71428571em; }
     .introduction_contact_hover {
       text-decoration: underline; }
 
