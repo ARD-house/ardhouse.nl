@@ -426,6 +426,7 @@
 
 },{}],2:[function(require,module,exports){
 var StickyElement = require('./StickyElement');
+var fastdom = require("./..\\..\\..\\..\\bower_components\\fastdom\\index.js");
 
 var offset = function( obj ) {
     var curleft = curtop = 0;
@@ -471,16 +472,41 @@ Object.assign(Contact.prototype, {
         StickyElement.prototype._onViewportChange.call(this);
     },
 
+    /**
+     * Explicitly enable stickyness. This is automatically called
+     * when needed on resize, load, rotate, scroll
+     */
+    enableSticky: function(){
+        // only execute if current state is not sticky
+        if ( this._isSticky !== true ){
+            this._isSticky = true;
+
+            // queue actual stickyness enabling on next write frame
+            fastdom.write(this._enableSticky.bind(this));
+            setTimeout(function(){
+                fastdom.write(this._enableSticky.bind(this));
+            }.bind(this), 100)
+            setTimeout(function(){
+                fastdom.write(this._enableSticky.bind(this));
+            }.bind(this), 200)
+        }
+    },
+
     _enableSticky: function(){
         this._containerElement.style.top = this._getLogoHeight() + 'px';
         StickyElement.prototype._enableSticky.call(this);
+    },
+
+    _disableSticky: function(){
+        this._containerElement.style.top = 0;
+        StickyElement.prototype._disableSticky.call(this);
     }
 
 });
 
 module.exports = Contact;
 
-},{"./StickyElement":3}],3:[function(require,module,exports){
+},{"./..\\..\\..\\..\\bower_components\\fastdom\\index.js":1,"./StickyElement":3}],3:[function(require,module,exports){
 /**
  *
  * @type {fastdom}

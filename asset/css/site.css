@@ -584,8 +584,45 @@ h1, h2, h3 {
       background-image: url(../image/pen--medium.jpg); } }
   .contact_container {
     background: #F05B22;
+    width: 100%;
+    position: relative;
     float: left;
-    width: 100%; }
+    top: 0; }
+    .contact_container:before, .contact_container:after {
+      font-size: .5em; }
+      @media screen and (max-width: 980px) {
+        .contact_container:before, .contact_container:after {
+          font-size: .45em; } }
+      @media screen and (max-width: 810px) {
+        .contact_container:before, .contact_container:after {
+          font-size: .4em; } }
+      @media screen and (max-width: 740px) {
+        .contact_container:before, .contact_container:after {
+          font-size: .35em; } }
+      @media screen and (max-width: 640px) {
+        .contact_container:before, .contact_container:after {
+          font-size: .3em; } }
+    .contact_container:before {
+      content: '';
+      position: absolute;
+      box-sizing: content-box;
+      right: 0;
+      bottom: 100%;
+      width: 51%;
+      width: calc(50% + 2.5em);
+      height: 1.78571429em;
+      -webkit-transform: scaleY(-1);
+          -ms-transform: scaleY(-1);
+              transform: scaleY(-1);
+      -webkit-filter: FlipV;
+              filter: FlipV;
+      -ms-filter: "FlipV";
+      background: #F05B22;
+      background: #f05b22;
+      background: -webkit-gradient(left top, left bottom, color-stop(0%, #f05b22), color-stop(26%, #f05b22), color-stop(100%, rgba(240, 92, 34, 0.67)));
+      background: -webkit-linear-gradient(top, #f05b22 0%, #f05b22 26%, rgba(240, 92, 34, 0.67) 100%);
+      background: linear-gradient(to bottom, #f05b22 0%, #f05b22 26%, rgba(240, 92, 34, 0.67) 100%);
+      filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#f05b22', endColorstr='#f05c22', GradientType=0 ); }
   .contact.sticky .contact_container {
     position: fixed; }
   .contact_article {
