@@ -518,7 +518,7 @@ h1, h2, h3 {
   background-repeat: no-repeat;
   margin: 0;
   float: left; }
-  @media screen and (max-width: 1000px) {
+  @media screen and (max-width: 1030px) {
     .introduction {
       background-image: url(../image/chair--medium.jpg); } }
   .introduction_container {
@@ -579,7 +579,7 @@ h1, h2, h3 {
   margin: 0;
   float: left;
   position: relative; }
-  @media screen and (max-width: 1000px) {
+  @media screen and (max-width: 1030px) {
     .contact {
       background-image: url(../image/pen--medium.jpg); } }
   .contact_container {
